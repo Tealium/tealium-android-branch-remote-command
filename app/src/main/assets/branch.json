@@ -1,0 +1,53 @@
+{
+  "config": {
+    "dev_key": "test",
+    "settings": {
+      "enable_logging": true,
+      "collect_device_id": true
+    }
+  },
+  "mappings": {
+    "tealium_event": "event.description",
+    "description": "buo.description",
+    "item_id": "buo.canonical_identifier",
+    "title": "buo.title",
+    "feature": "link.feature",
+    "channel": "link.channel",
+    "campaign": "link.campaign",
+    "latitude": "metadata.latitude",
+    "longitude": "metadata.longitude",
+    "currency_code": "metadata.currency_type",
+    "customer_id": "event.user_id",
+    "coupon": "metadata.coupon",
+    "product_brand": "metadata.product_brand",
+    "product_category": "metadata.product_category",
+    "product_id": "metadata.sku",
+    "product_name": "metadata.product_name",
+    "product_variant": "metadata.product_variant",
+    "product_unit_price": "metadata.price",
+    "product_quantity": "event.quantity",
+    "currency_type": "event.currency",
+    "order_tax": "event.tax"
+  },
+  "commands": {
+    "launch": "initialize",
+    "user_login": "login,setuserid",
+    "user_register": "completeregistration",
+    "show_offers": "clickad",
+    "cart_add": "addtocart",
+    "wishlist_add": "addtowishlist",
+    "payment": "addpaymentinfo",
+    "level_up": "achievelevel",
+    "email_signup": "subscribe",
+    "product": "viewitem",
+    "share": "share",
+    "rate": "rate",
+    "search": "search",
+    "invite": "invite",
+    "order": "initiatepurchase",
+    "record_score": "record_score",
+    "create_deep_link": "createdeeplink",
+    "teal_custom_event": "teal_custom_event"
+  }
+}
+
