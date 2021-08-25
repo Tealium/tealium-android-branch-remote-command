@@ -54,8 +54,8 @@ class BranchInstance(
             else -> BranchEvent(standardEvent)
         }
 
-        val settings = payload.optJSONObject(EventKey.EVENT)
-        settings?.let {
+        val eventProperties = payload.optJSONObject(EventKey.EVENT)
+        eventProperties?.let {
             event.addEventProperties(it)
         }
 

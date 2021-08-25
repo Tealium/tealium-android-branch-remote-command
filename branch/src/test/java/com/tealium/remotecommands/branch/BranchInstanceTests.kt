@@ -24,6 +24,8 @@ class BranchInstanceTests {
     lateinit var mockBranch: Branch
 
     lateinit var branchInstance: BranchInstance
+    lateinit var mockBuo: BranchUniversalObject
+    lateinit var mockContentMetadata: ContentMetadata
 
     @Before
     fun setUp() {
@@ -32,57 +34,44 @@ class BranchInstanceTests {
         mockkStatic(Branch::class)
         every { Branch.getInstance() } returns mockBranch
 
+        mockBuo = spyk()
+        mockBuo.canonicalIdentifier = "testIdentifier"
+        mockBuo.canonicalUrl = "testUrl"
+        mockBuo.title = "testTitle"
+        mockBuo.setContentDescription("testDescription")
+        mockBuo.setContentImageUrl("testImageUrl")
+
+        mockkConstructor(BranchUniversalObject::class)
+        every { anyConstructed<BranchUniversalObject>().setCanonicalIdentifier(any()) } returns mockBuo
+        every { anyConstructed<BranchUniversalObject>().setCanonicalUrl(any()) } returns mockBuo
+        every { anyConstructed<BranchUniversalObject>().setTitle(any()) } returns mockBuo
+        every { anyConstructed<BranchUniversalObject>().setContentDescription(any()) } returns mockBuo
+        every { anyConstructed<BranchUniversalObject>().setContentImageUrl(any()) } returns mockBuo
+
+
+        mockContentMetadata = spyk()
+        mockContentMetadata.setQuantity(1.00)
+        mockContentMetadata.setSku("testSku")
+        mockContentMetadata.setProductName("testProductName")
+        mockContentMetadata.setProductBrand("testProductBrand")
+        mockContentMetadata.setProductCategory(ProductCategory.SOFTWARE)
+        mockContentMetadata.setProductCondition(ContentMetadata.CONDITION.GOOD)
+        mockContentMetadata.setProductVariant("testProductVariant")
+
+        mockkConstructor(ContentMetadata::class)
+        every { anyConstructed<ContentMetadata>().setQuantity(any()) } returns mockContentMetadata
+        every { anyConstructed<ContentMetadata>().setSku(any()) } returns mockContentMetadata
+        every { anyConstructed<ContentMetadata>().setProductName(any()) } returns mockContentMetadata
+        every { anyConstructed<ContentMetadata>().setProductBrand(any()) } returns mockContentMetadata
+        every { anyConstructed<ContentMetadata>().setProductCategory(any()) } returns mockContentMetadata
+        every { anyConstructed<ContentMetadata>().setProductCondition(any()) } returns mockContentMetadata
+        every { anyConstructed<ContentMetadata>().setProductVariant(any()) } returns mockContentMetadata
+
         branchInstance = BranchInstance(mockApplication, "testKey")
     }
 
     @Test
-    fun sendStandardEventWithEventData() {
-        val payload = JSONObject()
-        val eventData = JSONObject()
-        eventData.put("affiliation", "testAffiliation")
-        eventData.put("coupon", "testCoupon")
-        eventData.put("currency", "USD")
-        eventData.put("tax", 1.00)
-        eventData.put("revenue", 2.00)
-        eventData.put("description", "testDescription")
-        eventData.put("search_query", "testSearchQuery")
-        payload.put("event", eventData)
-
-        val event = BranchEvent(BRANCH_STANDARD_EVENT.START_TRIAL)
-        event.setAffiliation("testAffiliation")
-        event.setCoupon("testCoupon")
-        event.setCurrency(CurrencyType.getValue("USD"))
-        event.setTax(1.00)
-        event.setRevenue(2.00)
-        event.setDescription("testDescription")
-        event.setSearchQuery("testSearchQuery")
-
-        mockkConstructor(BranchEvent::class)
-        every { anyConstructed<BranchEvent>() } returns event
-        every { anyConstructed<BranchEvent>().setAffiliation("testAffiliation") } returns event
-        every { anyConstructed<BranchEvent>().setCoupon("testCoupon") } returns event
-        every { anyConstructed<BranchEvent>().setCurrency(CurrencyType.getValue("USD")) } returns event
-        every { anyConstructed<BranchEvent>().setTax(1.00) } returns event
-        every { anyConstructed<BranchEvent>().setRevenue(2.00) } returns event
-        every { anyConstructed<BranchEvent>().setDescription("testDescription") } returns event
-        every { anyConstructed<BranchEvent>().setSearchQuery("testSearchQuery") } returns event
-
-        branchInstance.sendEvent("starttrial", payload)
-
-        verify {
-            BranchEvent(BRANCH_STANDARD_EVENT.START_TRIAL)
-            event.setAffiliation("testAffiliation")
-            event.setCoupon("testCoupon")
-            event.setCurrency(CurrencyType.getValue("USD"))
-            event.setTax(1.00)
-            event.setRevenue(2.00)
-            event.setDescription("testDescription")
-            event.setSearchQuery("testSearchQuery")
-        }
-    }
-
-    @Test
-    fun sendStandardEventWithBuoData() {
+    fun standardEventWithBuoDataObject() {
         val payload = JSONObject()
         val buoData = JSONObject()
         buoData.put("canonical_identifier", "testIdentifier")
@@ -92,34 +81,19 @@ class BranchInstanceTests {
         buoData.put("image_url", "testImageUrl")
         payload.put("buo", buoData)
 
-        val buo = spyk<BranchUniversalObject>()
-        buo.canonicalIdentifier = "testIdentifier"
-        buo.canonicalUrl = "testUrl"
-        buo.title = "testTitle"
-        buo.setContentDescription("testDescription")
-        buo.setContentImageUrl("testImageUrl")
-
-        mockkConstructor(BranchUniversalObject::class)
-        every { anyConstructed<BranchUniversalObject>().setCanonicalIdentifier("testIdentifier") } returns buo
-        every { anyConstructed<BranchUniversalObject>().setCanonicalUrl("testUrl") } returns buo
-        every { anyConstructed<BranchUniversalObject>().setTitle("testTitle") } returns buo
-        every { anyConstructed<BranchUniversalObject>().setContentDescription(any()) } returns buo
-        every { anyConstructed<BranchUniversalObject>().setContentImageUrl(any()) } returns buo
-
         branchInstance.sendEvent("addtocart", payload)
 
         verify {
-            BranchEvent(BRANCH_STANDARD_EVENT.ADD_TO_CART)
-            buo.canonicalIdentifier = "testIdentifier"
-            buo.canonicalUrl = "testUrl"
-            buo.title = "testTitle"
-            buo.setContentDescription("testDescription")
-            buo.setContentImageUrl("testImageUrl")
+            mockBuo.canonicalIdentifier = "testIdentifier"
+            mockBuo.canonicalUrl = "testUrl"
+            mockBuo.title = "testTitle"
+            mockBuo.setContentDescription("testDescription")
+            mockBuo.setContentImageUrl("testImageUrl")
         }
     }
 
     @Test
-    fun sendStandardEventWithMetadata() {
+    fun standardEventWithMetadataObject() {
         val payload = JSONObject()
         val metadataObj = JSONObject()
         metadataObj.put("quantity", 1.00)
@@ -143,35 +117,16 @@ class BranchInstanceTests {
         metadataObj.put("image_captions", "testImageCaptions")
         payload.put("metadata", metadataObj)
 
-        val contentMetadata = spyk<ContentMetadata>()
-        contentMetadata.setQuantity(1.00)
-        contentMetadata.setSku("testSku")
-        contentMetadata.setProductName("testProductName")
-        contentMetadata.setProductBrand("testProductBrand")
-        contentMetadata.setProductCategory(ProductCategory.SOFTWARE)
-        contentMetadata.setProductCondition(ContentMetadata.CONDITION.GOOD)
-        contentMetadata.setProductVariant("testProductVariant")
-
-        mockkConstructor(ContentMetadata::class)
-        every { anyConstructed<ContentMetadata>().setQuantity(1.00) } returns contentMetadata
-        every { anyConstructed<ContentMetadata>().setSku("testSku") } returns contentMetadata
-        every { anyConstructed<ContentMetadata>().setProductName("testProductName") } returns contentMetadata
-        every { anyConstructed<ContentMetadata>().setProductBrand("testProductBrand") } returns contentMetadata
-        every { anyConstructed<ContentMetadata>().setProductCategory(ProductCategory.getValue("software")) } returns contentMetadata
-        every { anyConstructed<ContentMetadata>().setProductCondition(ContentMetadata.CONDITION.GOOD) } returns contentMetadata
-        every { anyConstructed<ContentMetadata>().setProductVariant("testProductVariant") } returns contentMetadata
-
         branchInstance.sendEvent("addtocart", payload)
 
         verify {
-            BranchEvent(BRANCH_STANDARD_EVENT.ADD_TO_CART)
-            contentMetadata.setQuantity(1.00)
-            contentMetadata.setSku("testSku")
-            contentMetadata.setProductName("testProductName")
-            contentMetadata.setProductBrand("testProductBrand")
-            contentMetadata.setProductCategory(ProductCategory.SOFTWARE)
-            contentMetadata.setProductCondition(ContentMetadata.CONDITION.GOOD)
-            contentMetadata.setProductVariant("testProductVariant")
+            mockContentMetadata.setQuantity(1.00)
+            mockContentMetadata.setSku("testSku")
+            mockContentMetadata.setProductName("testProductName")
+            mockContentMetadata.setProductBrand("testProductBrand")
+            mockContentMetadata.setProductCategory(ProductCategory.SOFTWARE)
+            mockContentMetadata.setProductCondition(ContentMetadata.CONDITION.GOOD)
+            mockContentMetadata.setProductVariant("testProductVariant")
         }
     }
 }
