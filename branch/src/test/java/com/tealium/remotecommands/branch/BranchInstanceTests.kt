@@ -1,6 +1,7 @@
 package com.tealium.remotecommands.branch
 
 import android.app.Application
+import com.tealium.remotecommands.RemoteCommandContext
 
 import io.branch.indexing.BranchUniversalObject
 import io.branch.referral.Branch
@@ -19,6 +20,9 @@ import org.robolectric.annotation.Config
 class BranchInstanceTests {
     @RelaxedMockK
     lateinit var mockApplication: Application
+
+    @RelaxedMockK
+    lateinit var mockRemoteCommandContext: RemoteCommandContext
 
     @RelaxedMockK
     lateinit var mockBranch: Branch
@@ -67,7 +71,7 @@ class BranchInstanceTests {
         every { anyConstructed<ContentMetadata>().setProductCondition(any()) } returns mockContentMetadata
         every { anyConstructed<ContentMetadata>().setProductVariant(any()) } returns mockContentMetadata
 
-        branchInstance = BranchInstance(mockApplication, "testKey")
+        branchInstance = BranchInstance(mockApplication, "testKey", mockRemoteCommandContext)
     }
 
     @Test

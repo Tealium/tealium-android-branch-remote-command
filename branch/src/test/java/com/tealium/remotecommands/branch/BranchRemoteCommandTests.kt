@@ -36,7 +36,8 @@ class BranchRemoteCommandTests {
         every { mockApplication.assets } returns mockk()
 
         branchRemoteCommand =
-            BranchRemoteCommand(mockApplication, "testKey", branchInstance = mockBranchInstance)
+            BranchRemoteCommand(mockApplication, "testKey")
+        branchRemoteCommand.branchInstance = mockBranchInstance
     }
 
     @Test

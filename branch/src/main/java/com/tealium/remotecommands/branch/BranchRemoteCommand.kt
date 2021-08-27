@@ -3,6 +3,7 @@ package com.tealium.remotecommands.branch
 import android.app.Application
 import android.util.Log
 import com.tealium.remotecommands.RemoteCommand
+import com.tealium.remotecommands.RemoteCommandContext
 import org.json.JSONObject
 import java.util.*
 
@@ -10,9 +11,10 @@ class BranchRemoteCommand(
     private val application: Application,
     private val branchKey: String,
     commandId: String = DEFAULT_COMMAND_ID,
-    description: String = DEFAULT_COMMAND_DESCRIPTION,
-    private val branchInstance: BranchCommand = BranchInstance(application, branchKey)
+    description: String = DEFAULT_COMMAND_DESCRIPTION
 ) : RemoteCommand(commandId, description) {
+
+    lateinit var branchInstance: BranchCommand
 
     public override fun onInvoke(response: Response) {
         val payload = response.requestPayload
@@ -59,6 +61,12 @@ class BranchRemoteCommand(
         return command.split(EventKey.SEPARATOR.toRegex())
             .map { it.trim().toLowerCase(Locale.ROOT) }
             .toTypedArray()
+    }
+
+    override fun setContext(context: RemoteCommandContext?) {
+        context?.let {
+            branchInstance = BranchInstance(application, branchKey, it)
+        }
     }
 
     companion object {

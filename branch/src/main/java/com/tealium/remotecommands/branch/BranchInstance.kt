@@ -15,7 +15,7 @@ import org.json.JSONObject
 class BranchInstance(
     private val application: Application,
     private var branchKey: String? = null,
-    private val remoteCommandContext: RemoteCommandContext? = null
+    private val remoteCommandContext: RemoteCommandContext
 ) : BranchCommand, Application.ActivityLifecycleCallbacks {
 
     private var currentActivity: Activity? = null
@@ -115,7 +115,7 @@ class BranchInstance(
     private val branchLinkCreateListener =
         Branch.BranchLinkCreateListener { url, error ->
             if (error == null) {
-                remoteCommandContext?.track(EventKey.BRANCH_CREATE_DEEPLINK, mapOf("branch_short_url" to url))
+                remoteCommandContext.track(EventKey.BRANCH_CREATE_DEEPLINK, mapOf("branch_short_url" to url))
             }
         }
 
@@ -137,7 +137,7 @@ class BranchInstance(
     }
 
     override fun onInitFinished(referringParams: JSONObject?, error: BranchError?) {
-        remoteCommandContext?.track(EventKey.BRANCH_REFERRING_PARAMS, referringParams?.toMap())
+        remoteCommandContext.track(EventKey.BRANCH_REFERRING_PARAMS, referringParams?.toMap())
     }
 
     private fun BranchEvent.addEventProperties(eventProperties: JSONObject) {
