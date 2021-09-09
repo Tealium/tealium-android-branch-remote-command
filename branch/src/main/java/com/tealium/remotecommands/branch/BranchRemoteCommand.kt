@@ -26,8 +26,7 @@ class BranchRemoteCommand(
         commands.forEach { command ->
             when (command) {
                 Commands.INITIALIZE -> {
-                    val config = payload.optJSONObject(EventKey.CONFIG)
-                    branchInstance.initialize(config)
+                    branchInstance.initialize(payload)
                 }
                 Commands.SET_USER_ID -> {
                     val id = payload.optString(EventKey.USER_ID, "")

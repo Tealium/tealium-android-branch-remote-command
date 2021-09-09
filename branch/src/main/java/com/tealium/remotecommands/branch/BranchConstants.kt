@@ -6,7 +6,6 @@ object EventKey {
     const val SEPARATOR = ","
     const val COMMAND_KEY = "command_name"
 
-    const val CONFIG = "config"
     const val USER_ID = "user_id"
     const val EVENT = "event"
     const val BUO_PROPERTIES = "buo"
