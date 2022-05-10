@@ -45,9 +45,10 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.0'
 
     // Tealium
-    implementation "com.tealium:kotlin-remotecommand-dispatcher:1.0.4"
-    implementation "com.tealium:kotlin-tagmanagement-dispatcher:1.0.6"
-    implementation "com.tealium:kotlin-lifecycle:1.0.5"
+    implementation "com.tealium:kotlin-core:1.4.0"
+    implementation "com.tealium:kotlin-remotecommand-dispatcher:1.1.0"
+    implementation "com.tealium:kotlin-tagmanagement-dispatcher:1.1.0"
+    implementation "com.tealium:kotlin-lifecycle:1.1.0"
     // Tealium Branch Remote Command
     releaseImplementation "com.tealium.remotecommands:branch:$tealium_branch_version"
     debugImplementation project (path: ':branch')
