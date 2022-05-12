@@ -4,7 +4,7 @@ plugins {
     id 'maven-publish'
 }
 
-version "1.0.0"
+version "$tealium_branch_version"
 
 android {
     compileSdkVersion 30
@@ -61,6 +61,7 @@ afterEvaluate {
     publishing {
         publications {
             mavenJava(MavenPublication) {
+                from components.release
                 groupId 'com.tealium.remotecommands'
                 artifactId 'branch'
             }
