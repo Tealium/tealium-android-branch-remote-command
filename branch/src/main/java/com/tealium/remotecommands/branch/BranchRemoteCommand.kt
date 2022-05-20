@@ -12,7 +12,7 @@ class BranchRemoteCommand(
     private val branchKey: String,
     commandId: String = DEFAULT_COMMAND_ID,
     description: String = DEFAULT_COMMAND_DESCRIPTION
-) : RemoteCommand(commandId, description) {
+) : RemoteCommand(commandId, description, BuildConfig.TEALIUM_BRANCH_VERSION) {
 
     lateinit var branchInstance: BranchCommand
 
@@ -58,7 +58,7 @@ class BranchRemoteCommand(
     fun splitCommands(payload: JSONObject): Array<String> {
         val command = payload.optString(EventKey.COMMAND_KEY)
         return command.split(EventKey.SEPARATOR.toRegex())
-            .map { it.trim().toLowerCase(Locale.ROOT) }
+            .map { it.trim().lowercase(Locale.ROOT) }
             .toTypedArray()
     }
 
