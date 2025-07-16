@@ -4,20 +4,16 @@ plugins {
     id 'maven-publish'
 }
 
-version "$tealium_branch_version"
-
 android {
-    compileSdkVersion 32
-    buildToolsVersion "30.0.3"
+    namespace = "com.tealium.remotecommands.branch"
+    compileSdk 35
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 32
-        versionCode 1
-        versionName "1.0"
+        targetSdkVersion 35
 
-        buildConfigField 'String', 'TAG', "\"TealiumBranch-$version\""
-        buildConfigField 'String', 'TEALIUM_BRANCH_VERSION', "\"$version\""
+        buildConfigField 'String', 'TAG', "\"Tealium-Branch-$tealium_branch_version\""
+        buildConfigField 'String', 'TEALIUM_BRANCH_VERSION', "\"$tealium_branch_version\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -29,14 +25,51 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
+
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = JavaVersion.VERSION_11
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
     }
 }
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId 'com.tealium.remotecommands'
+            artifactId 'branch'
+            version "$tealium_branch_version"
+            afterEvaluate {
+                from components.release
+            }
+        }
+    }
+    // repositories {
+    //     maven {
+    //         url "s3://maven.tealiumiq.com/android/releases/"
+    //         credentials(AwsCredentials) {
+    //              accessKey AWS_ACCESS_KEY
+    //              secretKey AWS_SECRET_KEY
+    //              sessionToken AWS_SESSION_TOKEN
+    //         }
+    //     }
+    // }
+}
+
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
@@ -46,32 +79,10 @@ dependencies {
     api "io.branch.sdk.android:library:$branch_version"
 
     // Tealium
-    api 'com.tealium:remotecommands:1.0.1'
+    api 'com.tealium:remotecommands:1.0.3'
 
-    testImplementation 'junit:junit:4.+'
-    testImplementation "org.robolectric:robolectric:4.6.1"
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation "org.robolectric:robolectric:4.14.1"
     testImplementation "io.mockk:mockk:$mockk_version"
 }
 
-afterEvaluate {
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                from components.release
-                groupId 'com.tealium.remotecommands'
-                artifactId 'branch'
-            }
-        }
-
-//        repositories {
-//            maven {
-//                url "s3://maven.tealiumiq.com/android/releases/"
-//                credentials(AwsCredentials) {
-//                    accessKey AWS_ACCESS_KEY
-//                    secretKey AWS_SECRET_KEY
-//                    sessionToken AWS_SESSION_TOKEN
-//                }
-//            }
-//        }
-    }
-}
