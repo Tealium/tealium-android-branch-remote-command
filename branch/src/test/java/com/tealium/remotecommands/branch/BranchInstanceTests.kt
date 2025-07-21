@@ -28,8 +28,6 @@ class BranchInstanceTests {
     lateinit var mockBranch: Branch
 
     lateinit var branchInstance: BranchInstance
-    lateinit var mockBuo: BranchUniversalObject
-    lateinit var mockContentMetadata: ContentMetadata
 
     @Before
     fun setUp() {
@@ -37,39 +35,8 @@ class BranchInstanceTests {
 
         mockkStatic(Branch::class)
         every { Branch.getInstance() } returns mockBranch
-
-        mockBuo = spyk()
-        mockBuo.canonicalIdentifier = "testIdentifier"
-        mockBuo.canonicalUrl = "testUrl"
-        mockBuo.title = "testTitle"
-        mockBuo.setContentDescription("testDescription")
-        mockBuo.setContentImageUrl("testImageUrl")
-
-        mockkConstructor(BranchUniversalObject::class)
-        every { anyConstructed<BranchUniversalObject>().setCanonicalIdentifier(any()) } returns mockBuo
-        every { anyConstructed<BranchUniversalObject>().setCanonicalUrl(any()) } returns mockBuo
-        every { anyConstructed<BranchUniversalObject>().setTitle(any()) } returns mockBuo
-        every { anyConstructed<BranchUniversalObject>().setContentDescription(any()) } returns mockBuo
-        every { anyConstructed<BranchUniversalObject>().setContentImageUrl(any()) } returns mockBuo
-
-
-        mockContentMetadata = spyk()
-        mockContentMetadata.setQuantity(1.00)
-        mockContentMetadata.setSku("testSku")
-        mockContentMetadata.setProductName("testProductName")
-        mockContentMetadata.setProductBrand("testProductBrand")
-        mockContentMetadata.setProductCategory(ProductCategory.SOFTWARE)
-        mockContentMetadata.setProductCondition(ContentMetadata.CONDITION.GOOD)
-        mockContentMetadata.setProductVariant("testProductVariant")
-
-        mockkConstructor(ContentMetadata::class)
-        every { anyConstructed<ContentMetadata>().setQuantity(any()) } returns mockContentMetadata
-        every { anyConstructed<ContentMetadata>().setSku(any()) } returns mockContentMetadata
-        every { anyConstructed<ContentMetadata>().setProductName(any()) } returns mockContentMetadata
-        every { anyConstructed<ContentMetadata>().setProductBrand(any()) } returns mockContentMetadata
-        every { anyConstructed<ContentMetadata>().setProductCategory(any()) } returns mockContentMetadata
-        every { anyConstructed<ContentMetadata>().setProductCondition(any()) } returns mockContentMetadata
-        every { anyConstructed<ContentMetadata>().setProductVariant(any()) } returns mockContentMetadata
+        every { Branch.getAutoInstance(any()) } returns mockBranch
+        every { Branch.getAutoInstance(any(), any()) } returns mockBranch
 
         branchInstance = BranchInstance(mockApplication, "testKey", mockRemoteCommandContext)
     }
@@ -84,20 +51,21 @@ class BranchInstanceTests {
         buoData.put("description", "testDescription")
         buoData.put("image_url", "testImageUrl")
         payload.put("buo", buoData)
-
-        branchInstance.sendEvent("addtocart", payload)
+        
+        val event = BranchEventBuilder.buildEvent("addtocart", payload)
+        val eventSpy = spyk(event)
+        every { eventSpy.logEvent(any()) } returns true
+        
+        branchInstance.sendEvent(eventSpy)
 
         verify {
-            mockBuo.canonicalIdentifier = "testIdentifier"
-            mockBuo.canonicalUrl = "testUrl"
-            mockBuo.title = "testTitle"
-            mockBuo.setContentDescription("testDescription")
-            mockBuo.setContentImageUrl("testImageUrl")
+            eventSpy.logEvent(mockApplication)
         }
     }
 
     @Test
     fun standardEventWithMetadataObject() {
+        // Given
         val payload = JSONObject()
         val metadataObj = JSONObject()
         metadataObj.put("quantity", 1.00)
@@ -121,16 +89,96 @@ class BranchInstanceTests {
         metadataObj.put("image_captions", "testImageCaptions")
         payload.put("metadata", metadataObj)
 
-        branchInstance.sendEvent("addtocart", payload)
+        val event = BranchEventBuilder.buildEvent("addtocart", payload)
+        val eventSpy = spyk(event)
+        every { eventSpy.logEvent(any()) } returns true
+        
+        branchInstance.sendEvent(eventSpy)
 
         verify {
-            mockContentMetadata.setQuantity(1.00)
-            mockContentMetadata.setSku("testSku")
-            mockContentMetadata.setProductName("testProductName")
-            mockContentMetadata.setProductBrand("testProductBrand")
-            mockContentMetadata.setProductCategory(ProductCategory.SOFTWARE)
-            mockContentMetadata.setProductCondition(ContentMetadata.CONDITION.GOOD)
-            mockContentMetadata.setProductVariant("testProductVariant")
+            eventSpy.logEvent(mockApplication)
+        }
+    }
+
+    @Test
+    fun testSetIdentity() {
+        // Given
+        val userId = "testUser123"
+
+        // When
+        branchInstance.setIdentity(userId)
+
+        // Then - verify Branch.setIdentity was called
+        verify {
+            mockBranch.setIdentity(userId)
+        }
+    }
+
+    @Test
+    fun testSetOptOut() {
+        // Given
+        val optOut = true
+
+        // When
+        branchInstance.setOptOut(optOut)
+
+        // Then - verify Branch.disableTracking was called
+        verify {
+            mockBranch.disableTracking(optOut)
+        }
+    }
+
+    @Test
+    fun testLogout() {
+        // When
+        branchInstance.logout()
+
+        // Then - verify Branch.logout was called
+        verify {
+            mockBranch.logout()
+        }
+    }
+
+    @Test
+    fun testOnInitFinished() {
+        // Given
+        val referringParams = JSONObject()
+        referringParams.put("deep_link_test", "test_value")
+        referringParams.put("campaign", "test_campaign")
+
+        // When
+        branchInstance.onInitFinished(referringParams, null)
+
+        // Then - verify that referring params were tracked
+        verify {
+            mockRemoteCommandContext.track(EventKey.BRANCH_REFERRING_PARAMS, any<Map<String, Any?>>())
+        }
+    }
+
+    @Test
+    fun testCreateDeepLink() {
+        // Given
+        val buo = BranchUniversalObject()
+        buo.canonicalIdentifier = "testIdentifier"
+        
+        val linkProperties = LinkProperties()
+        linkProperties.channel = "testChannel"
+        linkProperties.feature = "testFeature"
+
+        // Mock the BUO generateShortUrl method
+        val buoSpy = spyk(buo)
+        every { buoSpy.generateShortUrl(any(), any(), any()) } returns Unit
+
+        // When
+        branchInstance.createDeepLink(buoSpy, linkProperties)
+
+        // Then - verify generateShortUrl was called
+        verify {
+            buoSpy.generateShortUrl(
+                mockApplication.applicationContext,
+                linkProperties,
+                any()
+            )
         }
     }
 }

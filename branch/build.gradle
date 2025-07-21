@@ -81,8 +81,15 @@ dependencies {
     // Tealium
     api 'com.tealium:remotecommands:1.0.3'
 
+
     testImplementation 'junit:junit:4.13.2'
     testImplementation "org.robolectric:robolectric:4.14.1"
     testImplementation "io.mockk:mockk:$mockk_version"
+    
+    // AndroidX Browser for CustomTabsIntent
+    testImplementation 'androidx.browser:browser:1.8.0'
+    
+    // Google Play Billing for Branch SDK
+    testImplementation 'com.android.billingclient:billing:6.1.0'
 }
 

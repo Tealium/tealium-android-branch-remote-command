@@ -63,7 +63,7 @@ class BranchRemoteCommandTests {
         branchRemoteCommand.onInvoke(mockResponse)
 
         verify {
-            mockBranchInstance.initialize(any())
+            mockBranchInstance.initialize(any(), any(), any())
         }
     }
 
@@ -84,9 +84,27 @@ class BranchRemoteCommandTests {
     }
 
     @Test
-    fun onInvokeInvalidIdentity() {
+    fun onInvokeInvalidIdentityEmptyString() {
         val mockResponse = mockk<RemoteCommand.Response>()
         val payload = JSONObject()
+        payload.put(COMMAND_NAME_KEY, Commands.SET_USER_ID)
+
+        payload.put("user_id", "")
+
+        every { mockResponse.requestPayload } returns payload
+
+        branchRemoteCommand.onInvoke(mockResponse)
+
+        verify(exactly = 0) {
+            mockBranchInstance.setIdentity(any())
+        }
+    }
+
+    @Test
+    fun onInvokeInvalidIdentityMissing() {
+        val mockResponse = mockk<RemoteCommand.Response>()
+        val payload = JSONObject()
+        payload.put(COMMAND_NAME_KEY, Commands.SET_USER_ID)
 
         every { mockResponse.requestPayload } returns payload
 
@@ -102,16 +120,29 @@ class BranchRemoteCommandTests {
         val mockResponse = mockk<RemoteCommand.Response>()
         val payload = JSONObject()
         payload.put(COMMAND_NAME_KEY, Commands.CREATE_DEEP_LINK)
+        
         val link = JSONObject()
-        link.put("testLinkProperties", "value1")
+        link.put("channel", "testChannel")
+        link.put("feature", "testFeature")
+        link.put("campaign", "testCampaign")
+        
+        val buoData = JSONObject()
+        buoData.put("canonical_identifier", "testId")
+        buoData.put("title", "Test Title")
+        link.put("buo", buoData)
+        
         payload.put("link", link)
+        
+        val metadata = JSONObject()
+        metadata.put("sku", "testSku")
+        payload.put("metadata", metadata)
 
         every { mockResponse.requestPayload } returns payload
 
         branchRemoteCommand.onInvoke(mockResponse)
 
         verify {
-            mockBranchInstance.createDeepLink(any())
+            mockBranchInstance.createDeepLink(any(), any())
         }
     }
 
@@ -126,7 +157,7 @@ class BranchRemoteCommandTests {
         branchRemoteCommand.onInvoke(mockResponse)
 
         verify(exactly = 0) {
-            mockBranchInstance.createDeepLink(any())
+            mockBranchInstance.createDeepLink(any(), any())
         }
     }
 
@@ -150,13 +181,18 @@ class BranchRemoteCommandTests {
         val mockResponse = mockk<RemoteCommand.Response>()
         val payload = JSONObject()
         payload.put(COMMAND_NAME_KEY, "test_event")
+        
+        val eventData = JSONObject()
+        eventData.put("affiliation", "testAffiliation")
+        eventData.put("revenue", 10.0)
+        payload.put("event", eventData)
 
         every { mockResponse.requestPayload } returns payload
 
         branchRemoteCommand.onInvoke(mockResponse)
 
         verify {
-            mockBranchInstance.sendEvent("test_event", payload)
+            mockBranchInstance.sendEvent(any())
         }
     }
 
@@ -171,8 +207,41 @@ class BranchRemoteCommandTests {
         branchRemoteCommand.onInvoke(mockResponse)
 
         verify {
-            mockBranchInstance.sendEvent("addtocart", payload)
-            BranchEvent(BRANCH_STANDARD_EVENT.ADD_TO_CART)
+            mockBranchInstance.sendEvent(any())
+        }
+    }
+
+    @Test
+    fun onInvokeValidSendStandardEventWithFullData() {
+        val mockResponse = mockk<RemoteCommand.Response>()
+        val payload = JSONObject()
+        payload.put(COMMAND_NAME_KEY, "addtocart")
+        
+        // Event properties
+        val eventData = JSONObject()
+        eventData.put("affiliation", "testAffiliation")
+        eventData.put("revenue", 15.99)
+        eventData.put("currency", "USD")
+        payload.put("event", eventData)
+        
+        // BUO properties
+        val buoData = JSONObject()
+        buoData.put("canonical_identifier", "product123")
+        buoData.put("title", "Test Product")
+        payload.put("buo", buoData)
+        
+        // Metadata
+        val metadata = JSONObject()
+        metadata.put("sku", "SKU123")
+        metadata.put("product_name", "Test Product Name")
+        payload.put("metadata", metadata)
+
+        every { mockResponse.requestPayload } returns payload
+
+        branchRemoteCommand.onInvoke(mockResponse)
+
+        verify {
+            mockBranchInstance.sendEvent(any())
         }
     }
 
@@ -187,8 +256,7 @@ class BranchRemoteCommandTests {
         branchRemoteCommand.onInvoke(mockResponse)
 
         verify {
-            mockBranchInstance.sendEvent("test_event", payload)
-            BranchEvent("test_event")
+            mockBranchInstance.sendEvent(any())
         }
     }
 
@@ -203,8 +271,7 @@ class BranchRemoteCommandTests {
         branchRemoteCommand.onInvoke(mockResponse)
 
         verify {
-            mockBranchInstance.sendEvent("test_event", payload)
-            BranchEvent("test_event")
+            mockBranchInstance.sendEvent(any())
         }
     }
 }

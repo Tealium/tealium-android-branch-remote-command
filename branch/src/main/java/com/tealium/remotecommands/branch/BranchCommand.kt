@@ -1,13 +1,15 @@
 package com.tealium.remotecommands.branch
 
+import io.branch.indexing.BranchUniversalObject
 import io.branch.referral.Branch
-import org.json.JSONObject
+import io.branch.referral.util.BranchEvent
+import io.branch.referral.util.LinkProperties
 
 interface BranchCommand : Branch.BranchReferralInitListener {
-    fun initialize(config: JSONObject?)
-    fun sendEvent(eventName: String, payload: JSONObject)
+    fun initialize(branchKey: String?, enableLogging: Boolean, collectDeviceId: Boolean)
+    fun sendEvent(event: BranchEvent)
     fun setIdentity(id: String)
     fun setOptOut(opt: Boolean)
-    fun createDeepLink(properties: JSONObject)
+    fun createDeepLink(buo: BranchUniversalObject, linkProperties: LinkProperties)
     fun logout()
 }
